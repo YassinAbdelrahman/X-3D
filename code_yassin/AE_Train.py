@@ -10,7 +10,7 @@ from torchvision.transforms import v2
 import torch
 import nibabel as nib
 import torchio as tio
-
+import numpy as np
 output_dir = "output_images"
 
 
