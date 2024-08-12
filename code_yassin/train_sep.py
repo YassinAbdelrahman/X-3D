@@ -2,18 +2,18 @@ import torch
 from torch.utils.data import DataLoader
 import numpy as np
 import torch.nn as nn
-
+import time
 from t_network import TNetwork
 from AE_Dataset import AutoDataset
 import torch.optim as optim
 from torch.nn.functional import interpolate
 import matplotlib.pyplot as plt
 
-train_dataset = AutoDataset("/home/yabdelrahman/data/labels", set_size=26)
-train_dataloader = DataLoader(train_dataset, batch_size=2, shuffle=True)
+train_dataset = AutoDataset("/nethome/2514818/Data/tensors_02", set_size=200)
+train_dataloader = DataLoader(train_dataset, batch_size=10, shuffle=True)
 
-val_dataset = AutoDataset("/home/yabdelrahman/data/labels", train=False, set_size=26)
-val_dataloader = DataLoader(val_dataset, batch_size=2, shuffle=True)
+val_dataset = AutoDataset("/nethome/2514818/Data/tensors_02", train=False, set_size=200)
+val_dataloader = DataLoader(val_dataset, batch_size=10, shuffle=True)
 
 # Initializing the model
 model = TNetwork((120, 72, 236))
@@ -21,7 +21,7 @@ model = TNetwork((120, 72, 236))
 
 criterion = nn.BCELoss()
 criterion_2 = nn.L1Loss()
-optimizer = optim.Adam(model.parameters(), lr=0.00001)
+optimizer = optim.Adam(model.parameters(), lr=1e-4)
 
 
 def validate(model, dataloader, criterion):
@@ -39,11 +39,13 @@ def validate(model, dataloader, criterion):
     return avg_loss
 
 
-def train(model, train_dataloader, val_dataloader, criterion, optimizer, num_epochs=2):
+def train(model, train_dataloader, val_dataloader, criterion, optimizer, num_epochs=50):
     model.train()
     train_losses = []
     val_losses = []
     for epoch in range(num_epochs):
+        tic = time.perf_counter()
+        print(f"epoch {epoch}")
         total_loss = 0
         for inputs, labels in train_dataloader:
             inputs, labels = inputs.to(device), labels.to(device)
@@ -65,6 +67,8 @@ def train(model, train_dataloader, val_dataloader, criterion, optimizer, num_epo
 
         avg_val_loss = validate(model, val_dataloader, criterion)
         val_losses.append(avg_val_loss)
+        toc = time.perf_counter()
+        print(f"this epoch was {toc-tic:0.4f} sec long")
     return train_losses, val_losses
 
 

@@ -8,6 +8,10 @@ class TEncoder(nn.Module):
     def __init__(self) -> None:
         super().__init__()
 
+        self.conv0 = nn.Conv3d(1, 96, 5, padding='same')
+
+        self.conv
+
         self.relu = nn.ReLU()
         self.pool = nn.MaxPool3d(3, 2)
 
@@ -27,31 +31,47 @@ class TEncoder(nn.Module):
         self.fc = nn.LazyLinear(216)
 
     def forward(self, x: Tensor):
+        print('input', x.shape)
         x = self.conv1(x)
+        print('conv1', x.shape)
         x = self.relu(x)
         x = self.pool(x)
+        print(' pool1', x.shape)
         x = self.norm1(x)
 
         x = self.conv2(x)
+        print('conv2', x.shape)
         x = self.relu(x)
         x = self.pool(x)
+        print('pool2', x.shape)
+
         x = self.norm2(x)
 
         x = self.conv3(x)
+        print('conv3', x.shape)
+
         x = self.relu(x)
         x = self.pool(x)
+        print('pool3', x.shape)
+
         x = self.norm3(x)
 
         x = self.conv4(x)
+        print('conv4', x.shape)
+
         x = self.relu(x)
         x = self.pool(x)
+        print('pool4', x.shape)
+
 
         # x = self.final_pool(x)
         # print(x.shape)
 
         x = x.flatten(1)
-
+        print('flatten',x.shape)
         x = self.fc(x)
+        print('fc',x.shape)
+
 
         return x
 
@@ -109,7 +129,7 @@ class TNetwork(nn.Module):
         return logits, x
 
 
-# x = torch.randn(3, 1, 120, 72, 236).to("cuda")
+x = torch.randn(3, 1, 120, 72, 236).to("cpu")
 
-# model = TNetwork((120, 72, 236)).to("cuda")
-# print(model(x)[1].shape)
+model = TNetwork((120, 72, 236)).to("cpu")
+print(model(x)[1].shape)

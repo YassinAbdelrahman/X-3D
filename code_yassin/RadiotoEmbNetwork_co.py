@@ -23,41 +23,47 @@ class AlexNetEmbedding(nn.Module):
         )
 
         # Add a 64D fully connected layer (fc8) for embedding
-
+        self.fc8 = nn.LazyLinear(216)
+        for param in self.alexnet.classifier[-1].parameters():
+            param.requires_grad = False
+        
+        for param in self.fc8.parameters():
+            param.requires_grad = False
     def forward(self, x):
         # Forward pass through AlexNet
         x = self.alexnet(x)
+        x = self.fc8(x)
         # Forward pass through the additional fc8 layer for embedding
         return x
 
-        return x
 
 
-class SqueezeNetEmbedding(nn.Module):
-    def __init__(self):
-        super(SqueezeNetEmbedding, self).__init__()
 
-        self.squeezenet = models.squeezenet1_1()
-        # Modify the first convolutional layer to accept 1 channel input
-        self.squeezenet.features[0] = nn.Conv2d(
-            1, 64, kernel_size=3, stride=2, padding=1
-        )
+# class SqueezeNetEmbedding(nn.Module):
+#     def __init__(self):
+#         super(SqueezeNetEmbedding, self).__init__()
 
-        self.squeezenet.classifier = nn.Sequential(
-            nn.Dropout(p=0.5),
-            nn.Conv2d(512, 64, kernel_size=1),
-            nn.ReLU(inplace=True),
-            nn.AdaptiveAvgPool2d(
-                (15, 9 * 30)
-            ),  # Adjust pooling layer to match output size
-        )
+#         self.squeezenet = models.squeezenet1_1()
+#         # Modify the first convolutional layer to accept 1 channel input
+#         self.squeezenet.features[0] = nn.Conv2d(
+#             1, 64, kernel_size=3, stride=2, padding=1
+#         )
 
-    def forward(self, x):
-        # Forward pass through SqueezeNet
-        x = self.squeezenet(x)
-        # Reshape the output to (-1, 64, 8, 5, 15)
-        x = x.view(-1, 64, 15, 9, 30)
-        return x
+#         self.squeezenet.classifier = nn.Sequential(
+#             nn.Dropout(p=0.5),
+#             nn.Conv2d(512, 64, kernel_size=1),
+#             nn.ReLU(inplace=True),
+#             nn.AdaptiveAvgPool2d(
+#                 (15, 9 * 30)
+#             ),  # Adjust pooling layer to match output size
+#         )
+
+#     def forward(self, x):
+#         # Forward pass through SqueezeNet
+#         x = self.squeezenet(x)
+#         # Reshape the output to (-1, 64, 8, 5, 15)
+#         x = x.view(-1, 64, 15, 9, 30)
+#         return x
 
 
 class TDecoder(nn.Module):

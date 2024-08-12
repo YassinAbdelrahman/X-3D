@@ -36,7 +36,7 @@ def process_images(input_folder, output_folder):
 
 
 # Example usage
-input_folder = "/homes/yassin/output_images/DRRs_Unk_B"
-output_folder = "/homes/yassin/output_images/DRRs_Unk_B/cropped"
+input_folder = "Data/DRRs_real"
+output_folder = "Data/DRRs_real_cropped"
 
 process_images(input_folder, output_folder)

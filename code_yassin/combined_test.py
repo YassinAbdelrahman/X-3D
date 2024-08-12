@@ -15,8 +15,8 @@ def save_nifti(data, filename):
 
 def main():
     print("Loading model...")
-    model = CombinedModel()
-    model.squeezenet.load_state_dict(torch.load("./combined_squeeze.pth"))
+    model = CombinedModel((120,72,236))
+    model.alexnet.load_state_dict(torch.load("./combined_alex.pth"))
     # model.alex.load_state_dict(torch.load("./combined_alex.pth"))
     model.encoder.load_state_dict(torch.load("./combined_encoder.pth"))
     model.decoder.load_state_dict(torch.load("./combined_decoder.pth"))
@@ -28,8 +28,8 @@ def main():
     #     "/homes/yassin/E_ResearchData/labels_not_geo", max_samples=20
     # )
     test_dataset = Custom2D3DDataset(
-        "/homes/yassin/E_ResearchData/paired_tensors_cropped",
-        max_samples=5,
+        "/nethome/2514818/Data/final_data",
+        max_samples=1,
     )
 
     test_dataloader = DataLoader(
@@ -50,15 +50,17 @@ def main():
             print(radio.shape)
             print(f"Processing batch {i+1}/{len(test_dataloader)}")
             with torch.no_grad():
-                reconstructed, class_pred, latent = model(image, radio)
+                _, reconstructed = model(radio)
             original_np = image.squeeze(1).cpu().numpy()
             # print(original_np.shape)
-            print(reconstructed.shape)
+            # print(reconstructed.shape)
             reconstructed_np = reconstructed.squeeze(1).cpu().numpy()
             print(reconstructed_np[0].shape)
+            reconstructed_np[(reconstructed_np > 0.05) & (reconstructed_np < 1)] = 1
+
             # print(reconstructed_np.shape)
-            class_p = class_pred.cpu().numpy()
-            latent_vector = latent.cpu().numpy()
+            # class_p = class_pred.cpu().numpy()
+            # latent_vector = latent.cpu().numpy()
             # print(class_p, latent_vector)
             # Saving the original and reconstructed as NIfTI files
             # np.savetxt(f"./output/combined/class_p_{i}_{j}_comb.txt", class_p, fmt="%f")

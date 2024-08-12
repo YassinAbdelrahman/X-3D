@@ -10,71 +10,73 @@ import sys
 import nibabel as nib
 from torchvision import transforms
 
-folder_path = "E_ResearchData/femur/tensors_label_02"
-input_folder_artemis = "E_ResearchData/labels/artemis_femur"
-input_folder_unk = "E_ResearchData/labels/unk_femur"
-input_folder = "E_ResearchData/labels_not_geo"
+folder_path = "Data/tensors_02"
+input_folder_artemis = "Data/segmented_labels/artemis_femur"
+input_folder_unk = "Data/segmented_labels/unk_femur"
+# input_folder = "E_ResearchData/labels_not_geo"
 
 
-files = []
-filenames = sorted(os.listdir(input_folder))
+# files = []
+filenames = sorted(os.listdir(input_folder_unk))
+s_counter = 0
+for batch_thing in range(10):
+    files = []
+    for filename in filenames[s_counter:s_counter+30]:
+        f = os.path.join(input_folder_unk, filename)
+        img = nib.load(f).get_fdata()
+        # print(filename, img.shape)
+        files.append(img)
 
-s_counter = 270
-print(s_counter)
-for filename in filenames[270:]:
-    f = os.path.join(input_folder, filename)
-    img = nib.load(f).get_fdata()
-    # print(filename, img.shape)
-    files.append(img)
+    # for filename in os.listdir(input_folder_unk):
+    #     if filename.endswith(".nii.gz"):
+    #         f = os.path.join(input_folder_unk, filename)
+    #         img = nib.load(f).get_fdata()
+    #         files.append(img)
 
-# for filename in os.listdir(input_folder_unk):
-#     if filename.endswith(".nii.gz"):
-#         f = os.path.join(input_folder_unk, filename)
-#         img = nib.load(f).get_fdata()
-#         files.append(img)
-
-# files = [file for file in files if not any(value > 900 for value in file.shape)]
+    # files = [file for file in files if not any(value > 900 for value in file.shape)]
 
 
-arr = np.asarray(files, dtype="object")
-max_shape = np.array([arra.shape for arra in arr]).max(axis=0)
-print(max_shape)
-# Initialize an empty list to store the padded arrays
-padded_arrays = []
-print("ok1")
-for arra in arr:
-    # Pad the current array and append it to the list
-    padded_arr = np.pad(
-        arra,
-        [
-            (0, max_shape[0] - arra.shape[0]),
-            (0, max_shape[1] - arra.shape[1]),
-            (0, max_shape[2] - arra.shape[2]),
-        ],
-        mode="edge",
+    arr = np.asarray(files, dtype="object")
+    max_shape = np.array([arra.shape for arra in arr]).max(axis=0)
+    print(max_shape)
+    # Initialize an empty list to store the padded arrays
+    padded_arrays = []
+    print("ok1")
+    for arra in arr:
+        # Pad the current array and append it to the list
+        padded_arr = np.pad(
+            arra,
+            [
+                (0, max_shape[0] - arra.shape[0]),
+                (0, max_shape[1] - arra.shape[1]),
+                (0, max_shape[2] - arra.shape[2]),
+            ],
+            mode="edge",
+        )
+        padded_arrays.append(padded_arr)
+
+    # Convert the list of padded arrays to a NumPy array
+    padded_arrays = np.array(padded_arrays)
+    print("ok2")
+    padded_torch = np.expand_dims(padded_arrays, axis=1)
+    padded_torch = torch.from_numpy(padded_torch).float()
+    print(padded_torch.shape)
+
+    # for sample in padded_torch:
+    #     sample = torch.nn.functional.interpolate(sample, scale_factor=0.1, mode="nearest")
+    #     print(sample.shape)
+    #     torch.save(sample, os.path.join(folder_path, f"torch_sample_{s_counter}"))
+    #     s_counter += 1
+    padded_torch = torch.nn.functional.interpolate(
+        padded_torch, size=(120, 72, 236), mode="nearest"
     )
-    padded_arrays.append(padded_arr)
-
-# Convert the list of padded arrays to a NumPy array
-padded_arrays = np.array(padded_arrays)
-print("ok2")
-padded_torch = np.expand_dims(padded_arrays, axis=1)
-padded_torch = torch.from_numpy(padded_torch).float()
-print(padded_torch.shape)
-
-# for sample in padded_torch:
-#     sample = torch.nn.functional.interpolate(sample, scale_factor=0.1, mode="nearest")
-#     print(sample.shape)
-#     torch.save(sample, os.path.join(folder_path, f"torch_sample_{s_counter}"))
-#     s_counter += 1
-padded_torch = torch.nn.functional.interpolate(
-    padded_torch, size=(120, 72, 236), mode="nearest"
-)
-# print(padded_torch.shape)
-for sample in padded_torch:
-    # print(sample.shape)
-    torch.save(sample, os.path.join(folder_path, f"torch_{filenames[s_counter]}"))
-    s_counter += 1
+    # print(padded_torch.shape)
+    for sample in padded_torch:
+        # print(sample.shape)
+        outp_name = filenames[s_counter]
+        outp_name = outp_name[:-7]
+        torch.save(sample, os.path.join(folder_path, f"torch_Unk_{outp_name}.pt"))
+        s_counter += 1
 
 
 # # datasets inheret from torch.utils.data.Dataset

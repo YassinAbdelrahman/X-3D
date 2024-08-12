@@ -21,28 +21,28 @@ from combined_dataset import Custom2D3DDataset
 # )
 
 dataset = Custom2D3DDataset(
-    "/homes/yassin/E_ResearchData/paired_tensors_cropped", max_samples=200
+    "/nethome/2514818/Data/final_data", max_samples=200
 )
 dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
 
 # radio_dataset =
 # Initializing the model
-model = CombinedModel()
+model = CombinedModel((120,72,236))
 # print(model)
 
 weights_encoder = torch.load("./encoder.pth")
 weights_decoder = torch.load("./decoder.pth")
-weights_squeeze = torch.load("./squeeze.pth")
+weights_alex = torch.load("./alex.pth")
 # weights_alex = torch.load("./alexnet.pth")
 model.encoder.load_state_dict(weights_encoder, strict=False)
 model.decoder.load_state_dict(weights_decoder, strict=False)
-model.squeezenet.load_state_dict(weights_squeeze, strict=False)
+model.alexnet.load_state_dict(weights_alex, strict=False)
 # model.alex.load_state_dict(weights_decoder, strict=False)
 
 
 # criterion = nn.MSELoss()
 # optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=0.001)
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=1e-5)
 # prev_optimizer = torch.load("./optimizer3d.pth")
 # optimizer.load_state_dict(prev_optimizer, strict=False)
 criterion_1 = nn.BCELoss()
@@ -61,13 +61,14 @@ def train(
     criterion_reconstruction,
     criterion_classification,
     optimizer,
-    num_epochs=10,
+    num_epochs=20,
 ):
     model.train()
     for epoch in range(num_epochs):
         total_loss = 0
         for radios, image in dataloader:
             image = image.to(device)
+            loss = 0
             # print(radios.size())
             og_latent = model.encoder(image)
             for i in range(radios.size(0)):
@@ -75,7 +76,7 @@ def train(
                 radio = radios[0][i].unsqueeze(0)
                 radio = radio.to(device)
                 optimizer.zero_grad()
-                reconstructed, preds = model(image, radio)
+                preds, reconstructed = model(radio)
                 fake_latent = model.encoder(reconstructed)
                 reconstructed = interpolate(
                     reconstructed, size=image.shape[2:], mode="nearest"
@@ -85,8 +86,8 @@ def train(
                 loss_reconstruction = criterion_reconstruction(reconstructed, image)
                 l1_loss = 1e-4 * criterion_2(preds, torch.zeros_like(preds))
                 loss_classification = criterion_classification(og_latent, fake_latent)
-                print("reconstruction loss: ", loss_reconstruction)
-                print("classification loss: ", loss_classification)
+                print("reconstruction loss: ", loss_reconstruction.item())
+                print("classification loss: ", loss_classification.item())
                 loss += loss_reconstruction + loss_classification + l1_loss
             loss.backward()
             optimizer.step()
@@ -108,6 +109,6 @@ train(
 )
 torch.save(model.encoder.state_dict(), "./combined_encoder.pth")
 torch.save(model.decoder.state_dict(), "./combined_decoder.pth")
-torch.save(model.squeezenet.state_dict(), "./combined_squeeze.pth")
+torch.save(model.alexnet.state_dict(), "./combined_alex.pth")
 # torch.save(model.alex.state_dict(), "./combined_alex.pth")
 torch.save(optimizer.state_dict(), "./combined_optimizer.pth")

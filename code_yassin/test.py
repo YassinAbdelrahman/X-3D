@@ -1,4 +1,4 @@
-from Autoencoder3D_co import Autoencoder3D
+from t_network import TNetwork
 import nibabel as nib
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -16,7 +16,7 @@ def save_nifti(data, filename):
 
 def main():
     print("Loading model...")
-    model = Autoencoder3D()
+    model = TNetwork((120,72,236))
     model.encoder.load_state_dict(torch.load("./encoder.pth"))
     model.decoder.load_state_dict(torch.load("./decoder.pth"))
 
@@ -27,11 +27,11 @@ def main():
     #     "/homes/yassin/E_ResearchData/labels_not_geo", max_samples=20
     # )
     test_dataset = AutoDataset(
-        "/homes/yassin/E_ResearchData/femur/tensors_label_02", train=False, set_size=200
+        "/nethome/2514818/Data/tensors_02", train=False, set_size=5
     )
 
     test_dataloader = DataLoader(
-        test_dataset, batch_size=2, shuffle=False, num_workers=0
+        test_dataset, batch_size=1, shuffle=False, num_workers=0
     )
 
     print("checking if output folder exists...")
@@ -43,10 +43,11 @@ def main():
         inputs, labels = data
         print(f"Processing batch {i+1}/{len(test_dataloader)}")
         with torch.no_grad():
-            reconstructed = model(inputs)
+            _, reconstructed = model(inputs)
         original_np = inputs.squeeze(1).cpu().numpy()
+        print(inputs.shape[2:])
         reconstructed = interpolate(
-            reconstructed, size=inputs.shape[2:], mode="nearest"
+            reconstructed, size=labels.shape[2:], mode="nearest"
         )
 
         reconstructed_np = reconstructed.squeeze(1).cpu().numpy()

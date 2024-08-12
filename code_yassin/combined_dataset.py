@@ -18,7 +18,7 @@ class Custom2D3DDataset(Dataset):
         self.tensor_files_3d = sorted(
             [f for f in os.listdir(directory) if f.endswith("_3d.pt")]
         )
-        print(len(self.tensor_files_2d),len(self.tensor_files_3d))
+        # print(len(self.t  ensor_files_2d),len(self.tensor_files_3d))
         # Ensure the number of 2D and 3D files match
         # assert len(self.tensor_files_2d) == len(
         #     self.tensor_files_3d

@@ -1,29 +1,44 @@
-import matplotlib.pyplot as plt
-import seaborn as sns
-import torch
-import torchio as tio
+import matplotlib.pyplot as plt# type: ignore
+import torch# type: ignore
+import torchio as tio# type: ignore
 import os
+import seaborn as sns #type: ignore
+from tqdm import tqdm #type: ignore
+import pandas as pd #type:ignore
+
+
 import random
 import math
-from diffdrr.drr import DRR
-from diffdrr.visualization import plot_drr
-from diffdrr.data import read
-from diffdrr.pose import convert
-
+from diffdrr.drr import DRR# type: ignore
+from diffdrr.visualization import plot_drr # type: ignore
+from diffdrr.data import read# type: ignore
+from diffdrr.pose import convert # type: ignore
+from diffdrr.registration import Registration # type: ignore
+import numpy as np# type: ignore
+from diffdrr.metrics import NormalizedCrossCorrelation2d # type: ignore
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-input_folder = "Data/segmented_data/artemis_femur/"
+input_folder = "/nethome/2514818/Data/paired_segmentations/ANON2AU6SI16S"
 # output_folder = "/Data/segmented_data/artemis_femur"
 filenames = sorted(os.listdir(input_folder))
 plt.figure()
 i = 0
-rotations = torch.tensor([[0.0, 0.0, 0.0]], device=device)
-translations = torch.tensor([[0.0, 2300.0, -290.0]], device=device)
+params = pd.read_pickle("params_adam.pickle")
+z = params['loss'].idxmax()
+
+print(params.loc[z])
+# quit()
+
+
+rotations = torch.tensor([[0.1,0.1 ,0.1]], device=device)
+translations = torch.tensor([[17.4,2449.0,176.0]], device=device)
 image = filenames[0]
 img = tio.ScalarImage(os.path.join(input_folder, image))
 bounds = img.get_bounds()
-width = int(abs(bounds[1][1] - bounds[1][0])) + 120
-height = int((abs(bounds[2][1] - bounds[2][0]) + 150) ) 
+# width = int(abs(bounds[1][1] - bounds[1][0])) + 120
+# height = int((abs(bounds[2][1] - bounds[2][0]) + 150) ) 
+width = 80
+height = 200
 print(width, height)
 sub = read(
     volume=img,
@@ -59,8 +74,8 @@ img = drr(
     parameterization="euler_angles",
     convention="ZXY",
 )
-half_height = img.shape[2] // 2
-img = img[:, :, :half_height]
+# half_height = img.shape[2] // 2
+# img = img[:, :, :half_height]
 plot_drr(img, ticks=False)
 # torch.save(img, os.path.join(output_folder, f"DRR_torch_{i}"))
 # print(img)
@@ -68,6 +83,7 @@ plot_drr(img, ticks=False)
 # pose = convert(
 #     rotations, translations, parameterization="euler_angles", convention="ZXY"
 # )
+ground_truth = img
 image = image.replace(".nii.gz", "")
 # imgs = []
 # n_points = [200, 400, 600, 800, 1000]
@@ -78,7 +94,4 @@ image = image.replace(".nii.gz", "")
 # img = torch.concat(imgs)
 # axs = plot_drr(img, ticks=False, title=[f"n_points={n}" for n in n_points], axs=axs)
 plt.savefig(f"Data/test/img_{image}_{i}.png")
-plt.close()
-i += 1
-torch.cuda.empty_cache()
-
+plt.show()

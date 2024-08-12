@@ -2,7 +2,7 @@ import os
 import torch
 
 # Define the path to the folder containing the tensors
-tensor_dir = "/homes/yassin/E_ResearchData/DRR_tensors_cropped"
+tensor_dir = "Data/DRRs/DRR_tensors_cropped"
 
 # Iterate over each file in the tensor directory
 for filename in os.listdir(tensor_dir):
