@@ -72,35 +72,57 @@ class TDecoder(nn.Module):
 
         self.relu = nn.ReLU()
 
-        self.fc = nn.Linear(216, 256 * 6 * 3 * 10)
+        self.fc = nn.Linear(216, 1536)
+
+        self.unpool = nn.MaxUnpool3d(3, 2)
 
         # self.conv1 = nn.ConvTranspose3d(1, 256, 3, 1)
-        self.conv1 = nn.ConvTranspose3d(256, 384, 3, 2, 1, (0, 1, 1))
-        self.conv2 = nn.ConvTranspose3d(384, 256, 3, 2, 1, (0, 1, 1))
-        self.conv3 = nn.ConvTranspose3d(256, 96, 5, 2, 2, 1)
-        self.conv4 = nn.ConvTranspose3d(96, 1, 5, 3, 1, 1)
+        self.conv1 = nn.ConvTranspose3d(256, 384, 3, 1, padding_mode='same')
+        self.norm1 = nn.BatchNorm3d(384)
+        self.conv2 = nn.ConvTranspose3d(384, 256, 3, 2, padding_mode='same')
+        self.norm2 = nn.BatchNorm3d(256)
+        self.conv3 = nn.ConvTranspose3d(256, 128, 5, padding='same')
+        self.norm3 = nn.BatchNorm3d(128)
+        self.conv4 = nn.ConvTranspose3d(128, 96, 5, (2, 2, 3), padding='same')
+        self.norm4 = nn.BatchNorm3d(96)
+        self.conv5 = nn.ConvTranspose3d(96, 48, 3, padding='same')
+        self.norm5 = nn.BatchNorm3d(48)
+        self.conv6 = nn.ConvTranspose3d(48, 1, 3, padding='same')
         self.sig = nn.Sigmoid()
         self.pool = nn.AdaptiveAvgPool3d(input_size)
 
     def forward(self, x):
         x = self.fc(x)
-        x = x.view(-1, 256, 6, 3, 10)
+        x = x.view(-1, 256, 2, 1, 3)
 
-        x = self.relu(x)
-
+        # x = self.relu(x)
+        x = self.pool(x)
         x = self.conv1(x)
         x = self.relu(x)
-
-        x = self.conv2(x)
-        x = self.relu(x)
-
-        x = self.conv3(x)
-        x = self.relu(x)
-
-        x = self.conv4(x)
-        x = self.sig(x)
+        x = self.norm1(x)
 
         x = self.pool(x)
+        x = self.conv2(x)
+        x = self.relu(x)
+        x = self.norm2(x)
+
+        x = self.pool(x)
+        x = self.conv3(x)
+        x = self.relu(x)
+        x = self.norm3(x)
+
+        x = self.pool(x)
+        x = self.conv4(x)
+        x = self.norm4(x)
+
+
+        x = self.conv5(x)
+        x = self.norm5(x)
+        x = self.conv6(x)
+        x = self.sig(x)
+        print(x.shape)
+
+        # x = self.pool(x)
 
         return x
 
@@ -126,3 +148,9 @@ class RadioToEmb(nn.Module):
         # print(emb.shape)
 
         return pred, outp
+
+
+x = torch.randn(1, 1, 302,).to("cpu")
+
+model = TNetwork((120, 72, 236)).to("cpu")
+print(model(x)[1].shape)

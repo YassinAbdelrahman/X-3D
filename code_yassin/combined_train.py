@@ -85,7 +85,7 @@ def train(
                 # Compute losses
                 loss_reconstruction = criterion_reconstruction(reconstructed, image)
                 l1_loss = 1e-4 * criterion_2(preds, torch.zeros_like(preds))
-                loss_classification = criterion_classification(og_latent, fake_latent)
+                loss_classification = 1e-4 * criterion_classification(og_latent, fake_latent)
                 print("reconstruction loss: ", loss_reconstruction.item())
                 print("classification loss: ", loss_classification.item())
                 loss += loss_reconstruction + loss_classification + l1_loss

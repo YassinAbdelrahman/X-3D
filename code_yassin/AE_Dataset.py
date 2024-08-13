@@ -57,8 +57,8 @@ class AutoDataset(Dataset):
 
 transform = tio.Compose(
     [
-        tio.RandomAffine(),
-        tio.RandomFlip(),
+        # tio.RandomAffine(),
+        # tio.RandomFlip(),
         tio.RandomNoise(),
         # Add more transformations as needed
     ]

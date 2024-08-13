@@ -8,15 +8,27 @@ from AE_Dataset import AutoDataset
 import torch.optim as optim
 from torch.nn.functional import interpolate
 import matplotlib.pyplot as plt
+import torchio as tio
 
-train_dataset = AutoDataset("/nethome/2514818/Data/tensors_02", set_size=200)
+transform = tio.Compose(
+    [
+        # tio.RandomAffine(),
+        # tio.RandomFlip(),
+        tio.RandomNoise(),
+        # Add more transformations as needed
+    ]
+)
+
+train_dataset = AutoDataset("/nethome/2514818/Data/tensors_02", set_size=200,transform=transform)
 train_dataloader = DataLoader(train_dataset, batch_size=10, shuffle=True)
 
-val_dataset = AutoDataset("/nethome/2514818/Data/tensors_02", train=False, set_size=200)
+val_dataset = AutoDataset("/nethome/2514818/Data/tensors_02", train=False, set_size=200,transform=transform)
 val_dataloader = DataLoader(val_dataset, batch_size=10, shuffle=True)
 
 # Initializing the model
 model = TNetwork((120, 72, 236))
+
+
 
 
 criterion = nn.BCELoss()
