@@ -18,9 +18,9 @@ import numpy as np# type: ignore
 from diffdrr.metrics import NormalizedCrossCorrelation2d # type: ignore
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-input_folder = "/nethome/2514818/Data/paired_segmentations/ANON2AU6SI16S"
+input_folder = "/nethome/2514818/Data/paired_segmentations/ANON5UB95J1SC"
 # output_folder = "/Data/segmented_data/artemis_femur"
-filenames = sorted(os.listdir(input_folder))
+filenames = os.listdir(input_folder)
 plt.figure()
 i = 0
 params = pd.read_pickle("params_adam.pickle")
@@ -30,9 +30,12 @@ print(params.loc[z])
 # quit()
 
 
-rotations = torch.tensor([[0.1,0.1 ,0.1]], device=device)
-translations = torch.tensor([[17.4,2449.0,176.0]], device=device)
-image = filenames[0]
+
+
+rotations = torch.tensor([[0.0,0.1 ,0.1]], device=device)
+translations = torch.tensor([[163,2658.0,-63.0]], device=device)
+image = filenames[1]
+print(image)
 img = tio.ScalarImage(os.path.join(input_folder, image))
 bounds = img.get_bounds()
 # width = int(abs(bounds[1][1] - bounds[1][0])) + 120
