@@ -1,42 +1,35 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
 import os
-from time import time
-from mpl_toolkits import mplot3d
 import torch
 from torch.utils.data import Dataset
-import nibabel as nib
-from torchvision.transforms import v2
 import torchio as tio
 
-
-def train_test_split(input_folder, train, set_size):
+def train_test_split(input_folder, train, max_samples):
     filenames = sorted(os.listdir(input_folder))
     if train:
+        max_samples = int(0.9*max_samples)
         dataset_list = [
             torch.load(os.path.join(input_folder, filename))
-            for filename in filenames[:set_size]
+            for filename in filenames[:max_samples]
         ]
     else:
+        min_samples = int(0.9*max_samples)
         dataset_list = [
             torch.load(os.path.join(input_folder, filename))
-            for filename in filenames[set_size : int(1.25 * set_size)]
+            for filename in filenames[min_samples:max_samples]
         ]
 
     dataset = np.concatenate(dataset_list, axis=0)
     dataset = np.expand_dims(dataset, axis=1)
     return dataset
-    # print(len(dataset))
 
 
-class AutoDataset(Dataset):
+class AEDataset(Dataset):
     def __init__(self, input_folder, set_size, train=True, transform=None, num_aug=0):
         self.data = train_test_split(input_folder, train, set_size)
         self.transform = transform
         self.num_aug = num_aug
 
-    # datasets require the __getitem__ method (return a Tensor)
     def __getitem__(self, index):
         if self.num_aug == 0:
             x = torch.from_numpy(self.data[index]).float()
@@ -47,7 +40,6 @@ class AutoDataset(Dataset):
             x = self.transform(x)
         return x, x
 
-    # datasets requrie the __len__ method (returns number of data samples)
     def __len__(self):
         if self.num_aug == 0:
             return len(self.data)
@@ -56,10 +48,6 @@ class AutoDataset(Dataset):
 
 transform = tio.Compose(
     [
-        # tio.RandomAffine(),
-        # tio.RandomFlip(),
-        tio.RandomNoise(),
-        # Add more transformations as needed
-    ]
+        tio.RandomNoise(),    ]
 )
 

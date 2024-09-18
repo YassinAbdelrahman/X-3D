@@ -9,19 +9,12 @@ class Custom2D3DDataset(Dataset):
             directory (str): Path to the directory containing paired tensor files.
         """
         self.directory = directory
-
-        # Assuming the files are named consistently, e.g., 'sample_0_2d.pt' and 'sample_0_3d.pt'
         self.tensor_files_2d = sorted(
             [f for f in os.listdir(directory) if f.endswith("_2d.pt")]
         )
         self.tensor_files_3d = sorted(
             [f for f in os.listdir(directory) if f.endswith("_3d.pt")]
         )
-        # print(len(self.t  ensor_files_2d),len(self.tensor_files_3d))
-        # Ensure the number of 2D and 3D files match
-        # assert len(self.tensor_files_2d) == len(
-        #     self.tensor_files_3d
-        # ), "Number of 2D and 3D tensor files must match"
 
         if max_samples != None and val==False:
             max_samples = int(0.9*max_samples)

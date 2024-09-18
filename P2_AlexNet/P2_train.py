@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 from P2_network import RadioToEmb
 from P2_dataset import Custom2D3DDataset
 
-# dataset = BoneDataset("/homes/yassin/E_ResearchData/labels_not_geo", max_samples=50)
 train_dataset = Custom2D3DDataset(
     "/nethome/2514818/Data/final_data",
     max_samples=1000,val=False
@@ -20,46 +19,34 @@ val_dataset = Custom2D3DDataset(
 )
 val_dataloader = DataLoader(val_dataset, batch_size=1, shuffle=True)
 
-# Initializing the model
 model = RadioToEmb((120, 72, 236))
-
-# print(model)
 
 criterion = nn.BCELoss()
 criterion_2 = nn.L1Loss()
 
 optimizer = optim.Adam(model.parameters(), lr=1e-5)
-# weights_encoder = torch.load("./encoder.pth")
-# model.encoder.load_state_dict(weights_encoder, strict=False)
-# weights_decoder = torch.load("./decoder.pth")
+
 model.decoder.load_state_dict(torch.load("/nethome/2514818/X-3D/AE_checkpoints/decoder_epoch_186.pth"))
 
 for param in model.decoder.parameters():
     param.requires_grad = False
 
 def validate(model, val_dataloader, criterion):
-    model.eval()  # Set the model to evaluation mode
+    model.eval()  
     val_loss = 0.0
-    with torch.no_grad():  # Disable gradient computation
+    with torch.no_grad():  
         for inputs, nii in val_dataloader:
             loss = 0
             nii = nii.to(device)
             inputs = inputs.squeeze(0).to(device)
-            
-            # Forward pass
             preds, outputs = model(inputs)
-            
-            # Resize the output to match the target size
             outputs = interpolate(outputs, size=nii.shape[2:], mode="nearest")
-            
             l1_loss = 1e-4 * criterion_2(preds, torch.zeros_like(preds))
             for i in range(outputs.shape[0]):
                 loss += criterion(outputs[i], nii.squeeze(0))
             loss = loss + l1_loss
             
             val_loss += loss.item()
-    
-    # Calculate the average validation loss
     avg_val_loss = val_loss / len(val_dataloader)
     return avg_val_loss
 
@@ -72,31 +59,26 @@ def train(model, train_dataloader, val_dataloader, criterion, optimizer, num_epo
         total_loss = 0
         j = 1
         for inputs, nii in train_dataloader:
-            
             loss = 0
-            # inputs = inputs.to(device)
             nii = nii.to(device)
             inputs = inputs.squeeze(0).to(device)
             optimizer.zero_grad()
-            # print(inputs.size())
             (
                 preds,
                 outputs,
             ) = model(inputs)
-            # print(outputs.shape)
             outputs = interpolate(outputs, size=nii.shape[2:], mode="nearest")
             l1_loss = 1e-4 * criterion_2(preds, torch.zeros_like(preds))
-            for i in range(outputs.shape[0]):
 
+            for i in range(outputs.shape[0]):
                 loss += criterion(outputs[i], nii.squeeze(0))
+
             loss = loss + l1_loss
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
-            print(loss.item(), j, len(train_dataloader))
             j = j+ 1
-            # print(f"Batch {i}, Loss: {total_loss / (len(dataloader))}")
-        #     print(f"Image {i}, Loss: {total_loss / (len(dataloader))}")
+
         avg_train_loss = total_loss / len(train_dataloader)
         train_losses.append(avg_train_loss)
         avg_val_loss = validate(model, val_dataloader, criterion)
@@ -104,7 +86,6 @@ def train(model, train_dataloader, val_dataloader, criterion, optimizer, num_epo
         print(f"Epoch {epoch+1}, Loss: {avg_train_loss}")
         if (epoch + 1) % 2 == 0:
             torch.save(model.alex.state_dict(), f"./output/radio_alex_epoch_{epoch + 1}.pth")
-            # torch.save(optimizer.state_dict(), f"./Radio_checkpoints_new/radio_optimizer_epoch_{epoch + 1}.pth")
             print(f"Checkpoint saved for epoch {epoch + 1}")
     return train_losses, val_losses
 
@@ -125,5 +106,3 @@ plt.title("Training and Validation Loss over Epochs")
 plt.legend()
 plt.savefig("radio_losses.png")
 plt.show()
-# torch.save(model.alex.state_dict(), "./alexnet.pth")
-# torch.save(optimizer.state_dict(), "./radioopt.pth")

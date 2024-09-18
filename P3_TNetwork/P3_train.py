@@ -18,9 +18,7 @@ val_dataset = Custom2D3DDataset(
 )
 val_dataloader = DataLoader(val_dataset, batch_size=1, shuffle=True)
 
-# Initializing the model
 model = CombinedModel((120,72,236))
-# print(model)
 
 weights_encoder = torch.load("./encoder.pth")
 weights_decoder = torch.load("./decoder.pth")
@@ -42,10 +40,10 @@ for param_tensor in model.state_dict():
     print(param_tensor, "\t", model.state_dict()[param_tensor].size())
 
 def validate(model, val_dataloader, criterion_reconstruction, criterion_classification):
-    model.eval()  # Set the model to evaluation mode
+    model.eval()  
     total_val_loss = 0
 
-    with torch.no_grad():  # Disable gradient computation during validation
+    with torch.no_grad():  
         for radios, image in val_dataloader:
             image = image.to(device)
             loss = 0
@@ -59,7 +57,6 @@ def validate(model, val_dataloader, criterion_reconstruction, criterion_classifi
                     reconstructed, size=image.shape[2:], mode="nearest"
                 )
 
-                # Compute losses
                 loss_reconstruction = criterion_reconstruction(reconstructed, image)
                 l1_loss = 1e-4 * criterion_2(preds, torch.zeros_like(preds))
                 loss_classification = 1e-4 * criterion_classification(og_latent, fake_latent)
@@ -100,7 +97,6 @@ def train(
                     reconstructed, size=image.shape[2:], mode="nearest"
                 )
                 
-                # Compute losses
                 loss_reconstruction = criterion_reconstruction(reconstructed, image)
                 l1_loss = 1e-4 * criterion_2(preds, torch.zeros_like(preds))
                 loss_classification = 1e-4 * criterion_classification(og_latent, fake_latent)
@@ -118,16 +114,13 @@ def train(
         if (epoch + 1) % 2 == 0:
             torch.save(model.decoder.state_dict(), f"./combined_checkpoints/combined_decoder_epoch_{epoch + 1}.pth")
             torch.save(model.alex.state_dict(), f"./combined_checkpoints/combined_alex_epoch_{epoch + 1}.pth")
-            torch.save(optimizer.state_dict(), f"./combined_checkpoints/combined_optimizer_epoch_{epoch + 1}.pth")
             print(f"Checkpoint saved for epoch {epoch + 1}")
     return train_losses, val_losses
 
 
-# GPU/CPU
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model = model.to(device)
 
-# Training the model
 train(
     model,
     train_dataloader,

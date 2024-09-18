@@ -4,7 +4,7 @@ import numpy as np
 import torch.nn as nn
 import time
 from P1_network import TNetwork
-from P1_dataset import AutoDataset
+from P1_dataset import AEDataset
 import torch.optim as optim
 from torch.nn.functional import interpolate
 import matplotlib.pyplot as plt
@@ -12,17 +12,14 @@ import torchio as tio
 
 transform = tio.Compose(
     [
-        # tio.RandomAffine(),
-        # tio.RandomFlip(),
         tio.RandomNoise(),
-        # Add more transformations as needed
     ]
 )
 
-train_dataset = AutoDataset("/nethome/2514818/Data/tensors_02", set_size=220,transform=transform)
+train_dataset = AEDataset("/nethome/2514818/Data/tensors_02", set_size=220,transform=transform)
 train_dataloader = DataLoader(train_dataset, batch_size=5, shuffle=True)
 
-val_dataset = AutoDataset("/nethome/2514818/Data/tensors_02", train=False, set_size=220,transform=transform)
+val_dataset = AEDataset("/nethome/2514818/Data/tensors_02", train=False, set_size=220,transform=transform)
 val_dataloader = DataLoader(val_dataset, batch_size=5, shuffle=True)
 
 # Initializing the model

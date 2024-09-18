@@ -4,7 +4,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 import os
 import numpy as np
-from P1_dataset import AutoDataset
+from P1_dataset import AEDataset
 from torch.nn.functional import interpolate
 
 
@@ -30,8 +30,8 @@ def main():
     # test_dataset = BoneDataset(
     #     "/homes/yassin/E_ResearchData/labels_not_geo", max_samples=20
     # )
-    test_dataset = AutoDataset(
-        "/nethome/2514818/Data/tensors_02", train=True, set_size=20
+    test_dataset = AEDataset(
+        "/nethome/2514818/Data/tensors_02", train=False, set_size=275
     )
 
     test_dataloader = DataLoader(
