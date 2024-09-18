@@ -1,6 +1,4 @@
-import SimpleITK as sitk
 from matplotlib import pyplot as plt
-import numpy as np
 import os
 import random
 import torch
@@ -8,10 +6,8 @@ import torchio as tio
 from diffdrr.drr import DRR
 from diffdrr.visualization import plot_drr
 from diffdrr.data import read
-from diffdrr.pose import convert
 import nibabel as nib
 import torch.nn.functional as TF
-import torchvision.transforms.functional as F
 import math
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

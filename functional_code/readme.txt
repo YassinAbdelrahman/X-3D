@@ -2,7 +2,7 @@ radio_preprocessor: creates DRRs and 40 augmentations of each DRR
 upsampler: upsamples a downsampled .nii.gz file (like the output of our network)
 remove_white: removes the white borders from the DRRs
 pttoniigz:convert .pt files into .nii.gz files
-AE_preprocessor: preprocesses the CT .nii.gz: pads them all to the same shape and downsamples them to 120x72x236, which is about 0.2x (in batches of 30 because of memory issues
+AE_preprocessor: preprocesses the CT .nii.gz: pads them all to the same shape and interpolates them to 120x72x236, which is about 0.2x (in batches of 30 because of memory issues
 )
 pngtotensor: converts DRRs from .png to .pt 
 niigztopt: converts .nii.gz files to .pt
