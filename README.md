@@ -7,6 +7,7 @@ Following is summation of the required libraries and a step-by-step breakdown of
 The following libraries are required for running all the code:
 
 ```
+python 3.10
 nibabel
 torch
 numpy
@@ -36,19 +37,19 @@ The preprocessing steps for the AE data were as follows:
 We start with DICOM files of CT scans. In our case, these CT scans were of the lower extremities of the body. These DICOM files were loaded into [3DSlicer](https://www.slicer.org/) and saved as .nii.gz files.
 
 ### Step 2: Generating 3D labels
-We have used [nnU-Net](https://github.com/MIC-DKFZ/nnUNet) for automatically generating 3D labels.  To run the network, execute the following command:
+We have used [nnU-Netv2](https://github.com/MIC-DKFZ/nnUNet) for automatically generating 3D labels.  To run the network, execute the following command:
 
 ```
-placeholder command
+nnUNetv2_predict -i FOLDER_WITH_NIIs -o OUTPUT_FOLDER -d 302 -c 3d_lowres –tr nnUNetTrainerNoMirroring
 ```
 
 
 
-### Step 3: 3DSlicer script for separating bone labels
+### Step 3: 3DSlicer script for separating bone labels[^2]
 Because the lower extremities contain 12(? double-check) different bones, the two femurs need to be separated and saved separately for proper training of the network. In 3DSlicer, run the following command:
 
 ```
-placeholder command 2, replace path with /path/to/slicer /path/to/script
+exec(open(r"path/to/slicer_script_label.py").read())
 ```
 
 ### Step 4: Mirroring
@@ -69,11 +70,11 @@ The preprocessing steps for the other two networks were as follows:
 6. Batching 10 CT-DRRs of the same bone for training.
 
 
-### Step 1: 3DSlicer script for separating bone models
+### Step 1: 3DSlicer script for separating bone models[^2]
 Separating the bone models was also done with a 3DSlicer script:
 
 ```
-placeholder command 3, replace path with /path/to/slicer /path/to/script
+exec(open(r"path/to/slicer_script_bone.py").read())
 ```
 
 
@@ -128,3 +129,5 @@ A predictor (AlexNet) is trained with an input of 250 CT-DRRs augmented 40 times
 This network replicates Part 2 but compares the encoding of the output of Part 2 with the encoding of the 3D label the CT-DRRs were based on.
 
 
+
+[^2]: If you want to save both the labels and the bone models in one iteration, replace the slicer script with `slicer_script_both.py` 
